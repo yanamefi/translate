@@ -1,11 +1,9 @@
 from models import Words
 from settings import session
-from sqlalchemy import update
+from sqlalchemy import update, func
 import random
 
-
-random_type = [Words.eng]
-x = random.choice(random_type)
+random_type = [None]
 y = 0
 
 
@@ -41,24 +39,26 @@ def del_word(txt, frst, scnd):
         return f"Unfortunately, there is no word like {txt}"
 
 
-def get_number():
-    global y, random_type, x
+def get_number(txt):
     random_type = [Words.ua, Words.eng]
-    x = random.choice(random_type)
-    results = session.query(x).all()
+    global y, x
+    if txt == "ua":
+        txt = Words.ua
+    elif txt == "eng":
+        txt = Words.eng
+    results = session.query(txt).all()
     second_column_values = [result[0] for result in results]
     y = random.randint(0, len(second_column_values)-1)
-    print(y, len(second_column_values)-1)
-    random_type.remove(x)
-    print(random_type)
-    return second_column_values[y]
+    random_type.remove(txt)
+    random_objects = session.query(random_type[0]).order_by(func.random()).limit(3).all()
+    return f"{second_column_values[y]}, {random_objects}"
 
 
 def check_test(txt):
     print(random_type)
     results = session.query(random_type[0]).all()
     second_column_values = [result[0] for result in results]
-    print(txt, second_column_values[y])
+    print(y)
     if txt == second_column_values[y]:
         return "good, you won"
     else:

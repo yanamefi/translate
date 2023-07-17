@@ -19,8 +19,8 @@ async def delete(txt: str):
 
 
 @app.get("/test")
-def take_number():
-    return get_number()
+def take_number(txt: str):
+    return get_number(txt)
 
 
 @app.get("/check/resault")
