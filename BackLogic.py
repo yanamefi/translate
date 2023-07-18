@@ -40,33 +40,36 @@ def del_word(txt, frst, scnd):
 
 
 def get_number(txt):
-    random_type = [Words.ua, Words.eng]
     global y, x
+
     if txt == "ua":
-        txt = Words.ua
+        word_lang = [0, 1]
+
     elif txt == "eng":
-        txt = Words.eng
-    results = session.query(txt).all()
-    second_column_values = [result[0] for result in results]
-    y = random.randint(0, len(second_column_values)-1)
-    random_type.remove(txt)
-    random_objects = session.query(random_type[0]).order_by(func.random()).limit(3).all()
-    return f"{second_column_values[y]}, {random_objects}"
+        word_lang = [1, 0]
+
+    results = session.query(Words.ua, Words.eng).all()
+    values = [result[word_lang[0]] for result in results]
+    y = random.randint(0, len(values)-1)
+
+    obj = session.query(Words.ua, Words.eng).order_by(func.random()).limit(3).all()
+    random_objects = [result[word_lang[1]] for result in obj]
+    random_objects.append([result[word_lang[1]] for result in results][y])
+    random.shuffle(random_objects)
+    return f"{values[y]}, {random_objects}"
 
 
 def check_test(txt):
-    print(random_type)
-    results = session.query(random_type[0]).all()
-    second_column_values = [result[0] for result in results]
-    print(y)
-    if txt == second_column_values[y]:
+    results = session.query(Words.ua, Words.eng).all()
+    values = [result[0] for result in results]
+    if txt == values[y]:
         return "good, you won"
     else:
         return "that isn`t right:("
 
 
 def edit_word(words_list, frst, scnd):
-    filt = update(Words).where(scnd == words_list[0]).values({scnd: words_list[1]})
+    filt = update(Words).where(scnd == words_list[1]).values({scnd: words_list[1]})
     session.execute(filt)
     session.commit()
     return "Word edited successfully"
