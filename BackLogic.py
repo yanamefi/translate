@@ -1,10 +1,37 @@
-from models import Words
+from models import Words, UsersTable
 from settings import session
-from sqlalchemy import update, func
+from sqlalchemy import update, func, desc
+from JWT_OP import create_access_token
 import random
 
 random_type = [None]
 y = 0
+word_lang = None
+
+
+class UserActions():
+    def add_user(self, name, password):
+        x = session.query(UsersTable).filter(UsersTable.login==name).all()
+        if x:
+            return "this name is already registered"
+        else:
+            session.add(UsersTable(login=name, password=password, points=0))
+            session.commit()
+            jwt_payload = {"login": name}
+            jwt_token = create_access_token(jwt_payload)
+            return f"account created, your token is: ' {jwt_token} '"
+
+    def login(self, login, password):
+        info = session.query(UsersTable).filter(UsersTable.login == login, UsersTable.password == password).first()
+        if info:
+            jwt_payload = {"login": login}
+            jwt_token = create_access_token(jwt_payload)
+            return f"your token is: ' {jwt_token} '"
+        else:
+            return "that`s wrong information"
+
+
+acts = UserActions()
 
 
 def check_alphabet(txt, func):
@@ -27,6 +54,7 @@ def add_words(eng, ua):
     user = Words(ua=ua, eng=eng)
     session.add(user)
     session.commit()
+    return "Word added"
 
 
 def del_word(txt, frst, scnd):
@@ -40,7 +68,7 @@ def del_word(txt, frst, scnd):
 
 
 def get_number(txt):
-    global y, x
+    global y, x, word_lang
 
     if txt == "ua":
         word_lang = [0, 1]
@@ -59,13 +87,28 @@ def get_number(txt):
     return f"{values[y]}, {random_objects}"
 
 
-def check_test(txt):
+def updating_res(filt, login, eq):
+    points_value = f"{filt[0]}{eq}{1}"
+    new_points = eval(points_value)
+    session.execute(
+        update(UsersTable).where(UsersTable.login == login["login"]).values({UsersTable.points: new_points}))
+    session.commit()
+
+
+def check_test(txt, login):
     results = session.query(Words.ua, Words.eng).all()
-    values = [result[0] for result in results]
+    values = [result[word_lang[1]] for result in results]
+    filt = session.query(UsersTable.points).filter(UsersTable.login == login["login"]).first()
+    print(txt, values[y])
     if txt == values[y]:
-        return "good, you won"
+        if filt:
+            updating_res(filt, login, "+")
+            return "good, you won"
+        else:
+            return "User not found"
     else:
-        return "that isn`t right:("
+        updating_res(filt, login, "-")
+        return "that isn't right:("
 
 
 def edit_word(words_list, frst, scnd):
@@ -74,3 +117,10 @@ def edit_word(words_list, frst, scnd):
     session.commit()
     return "Word edited successfully"
 
+
+def top():
+    last_three_records = session.query(UsersTable).order_by(desc(UsersTable.points)).limit(3).all()
+    users_list = {}
+    for user in reversed(last_three_records):
+        users_list.update({user.points: user.login})
+    return users_list
