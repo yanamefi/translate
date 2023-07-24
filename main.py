@@ -1,9 +1,25 @@
 from settings import app
-from BackLogic import translate_func, add_words, del_word, check_alphabet, get_number, check_test, edit_word
-from models import AddWord, EditWord
+from BackLogic import translate_func, add_words, del_word, check_alphabet, get_number, check_test, edit_word, acts, top
+from JWT_OP import verify_token
+from fastapi import Depends
+from models import AddWord, EditWord, CreateUser
 
 
-@app.post("/add")
+@app.post("/add/account")
+async def account(txt: CreateUser):
+    return acts.add_user(txt.login, txt.password)
+
+
+@app.post("/login")
+async def log(txt: CreateUser):
+    return acts.login(txt.login, txt.password)
+
+
+@app.get("/records")
+async def best():
+    return top()
+
+@app.post("/add/word")
 async def add_word(txt: AddWord):
     add_words(txt.eng.lower(), txt.ua.lower())
 
@@ -24,8 +40,8 @@ def take_number(txt: str):
 
 
 @app.get("/check/resault")
-async def check(txt:str):
-    return check_test(txt.lower())
+async def check(txt: str, decoded_token: dict = Depends(verify_token)):
+    return check_test(txt.lower(), decoded_token)
 
 
 @app.put("/edit")
