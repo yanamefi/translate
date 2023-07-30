@@ -1,5 +1,6 @@
 from settings import app
-from BackLogic import translate_func, add_words, del_word, check_alphabet, get_number, check_test, edit_word, acts, top
+from TranslatorLogic import translate_func, add_words, del_word, check_alphabet, get_number, check_test, edit_word, top
+from LoginActions import acts
 from JWT_OP import verify_token
 from fastapi import Depends
 from models import AddWord, EditWord, CreateUser
@@ -18,6 +19,7 @@ async def log(txt: CreateUser):
 @app.get("/records")
 async def best():
     return top()
+
 
 @app.post("/add/word")
 async def add_word(txt: AddWord):
@@ -40,8 +42,8 @@ def take_number(txt: str):
 
 
 @app.get("/check/resault")
-async def check(txt: str, decoded_token: dict = Depends(verify_token)):
-    return check_test(txt.lower(), decoded_token)
+async def check(original: str, lang: str, check: str, decoded_token: dict = Depends(verify_token)):
+    return check_test(original, check, lang, decoded_token)
 
 
 @app.put("/edit")

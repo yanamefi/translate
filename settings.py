@@ -1,8 +1,10 @@
-import sqlite3
+from aiogram import Bot, Dispatcher
 from fastapi import FastAPI
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+
 
 app = FastAPI()
 
@@ -11,6 +13,11 @@ engine = create_engine('postgresql://docker:postgresql@localhost:5432/translator
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 session = Session()
+
+
+bot = Bot(token="5989557246:AAFw1uKbZX5dSB4jsVnI6FZASdN1QwLvq1U")
+dp = Dispatcher(bot)
+storage = MemoryStorage()
 
 
 ALGORITHMS = "HS256"
