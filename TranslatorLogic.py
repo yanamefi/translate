@@ -9,6 +9,8 @@ def check_alphabet(txt, func):
         return func(txt, Words.eng, Words.ua)
     elif 'A' <= txt[0] <= 'z':
         return func(txt, Words.ua, Words.eng)
+    else:
+        return "we support only"
 
 
 def translate_func(txt, frst, scnd):
@@ -48,16 +50,20 @@ def text_changing(txt):
 
 
 def get_number(txt):
-    word_lang = text_changing(txt)
-    results = session.query(Words.ua, Words.eng).all()
-    values = [result[word_lang[0]] for result in results]
-    y = random.randint(0, len(values)-1)
-
-    obj = session.query(Words.ua, Words.eng).order_by(func.random()).limit(3).all()
-    random_objects = [result[word_lang[1]] for result in obj]
-    random_objects.append([result[word_lang[1]] for result in results][y])
-    random.shuffle(random_objects)
-    return f"{values[y]}, {random_objects}"
+    # word_lang = text_changing(txt)
+    fields = [Words.ua, Words.eng] if txt == "ua" else [Words.eng, Words.ua]
+    results = session.query(*fields).order_by(func.random()).limit(5).all()
+    choices = [results[0][1]] + [i[1] for i in results[1:4]]
+    # print(results, type(results))
+    # values = [result[word_lang[0]] for result in results]
+    # y = random.randint(0, len(values)-1)
+    #
+    # obj = session.query(Words.ua, Words.eng).order_by(func.random()).limit(3).all()
+    # random_objects = [result[word_lang[1]] for result in obj]
+    # random_objects.append([result[word_lang[1]] for result in results][y])
+    # random.shuffle(random_objects)
+    dct = {"origin": results[0][0], "choices": choices}
+    return dct
 
 
 def updating_result(filt, login, eq):

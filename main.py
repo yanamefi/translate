@@ -27,7 +27,7 @@ async def add_word(txt: AddWord):
 
 
 @app.get("/")
-async def fing_word(txt: str):
+async def find_word(txt: str):
     return check_alphabet(txt.lower(), translate_func)
 
 
